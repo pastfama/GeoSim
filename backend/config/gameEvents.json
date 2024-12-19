@@ -1,0 +1,15 @@
+{
+    "childhood": [
+      { "event": "You excelled in math during elementary school.", "effect": { "intelligence": 5 } },
+      { "event": "You made a lifelong friend.", "effect": { "charisma": 3 } }
+    ],
+    "adolescence": [
+      { "event": "You joined the school debate team.", "effect": { "charisma": 5 } },
+      { "event": "You started playing guitar.", "effect": { "creativity": 4 } }
+    ],
+    "adultLife": [
+      { "event": "You landed your dream job as a software engineer.", "effect": { "wealth": 10 } },
+      { "event": "You started a family.", "effect": { "happiness": 7 } }
+    ]
+  }
+  

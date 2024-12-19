@@ -1,0 +1,23 @@
+[
+  {
+    "name": "Mayo Clinic",
+    "city": "Rochester",
+    "state": "Minnesota",
+    "latitude": 44.0216,
+    "longitude": -92.4699
+  },
+  {
+    "name": "Cleveland Clinic",
+    "city": "Cleveland",
+    "state": "Ohio",
+    "latitude": 41.5036,
+    "longitude": -81.6211
+  },
+  {
+    "name": "Johns Hopkins Hospital",
+    "city": "Baltimore",
+    "state": "Maryland",
+    "latitude": 39.2976,
+    "longitude": -76.5920
+  }
+]
