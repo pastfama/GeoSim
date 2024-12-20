@@ -22,7 +22,10 @@ class Person {
         // Hospital Location
         const randomHospital = Person.getRandomHospital();
         this.hospitalName = randomHospital.name;
-        this.hospitalStreetViewUrl = randomHospital.streetViewUrl;
+        this.hospitalGeoData = randomHospital.geoData;
+
+        // Generate the Street View URL based on latitude and longitude
+        this.hospitalStreetViewUrl = `https://maps.google.com/?q=${this.hospitalGeoData.latitude},${this.hospitalGeoData.longitude}&layer=c&cbll=${this.hospitalGeoData.latitude},${this.hospitalGeoData.longitude}`;
     }
 
     static getRandomNumber(min, max) {
@@ -47,13 +50,7 @@ class Person {
     }
 
     static getRandomHospital() {
-        const hospitals = [
-            { name: "City General Hospital", streetViewUrl: "https://maps.google.com?q=City+General+Hospital" },
-            { name: "St. Mary's Medical Center", streetViewUrl: "https://maps.google.com?q=St.+Mary%27s+Medical+Center" },
-            { name: "Mercy Hospital", streetViewUrl: "https://maps.google.com?q=Mercy+Hospital" },
-            { name: "Riverside Clinic", streetViewUrl: "https://maps.google.com?q=Riverside+Clinic" },
-            { name: "Downtown Health Center", streetViewUrl: "https://maps.google.com?q=Downtown+Health+Center" }
-        ];
+        const hospitals = JSON.parse(fs.readFileSync('./assets/hospitals.json', 'utf8')); // Read hospitals from JSON file
         return hospitals[Math.floor(Math.random() * hospitals.length)];
     }
 
