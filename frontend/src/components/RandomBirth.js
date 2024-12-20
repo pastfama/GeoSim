@@ -14,7 +14,7 @@ function RandomBirth() {
         const response = await axios.get('http://localhost:5000/random-person');
         const { 
           firstName, lastName, sex, happiness, health, smarts, looks, age, 
-          hospitalName, hospitalStreetViewUrl, father, mother 
+          hospitalName, hospitalStreetViewUrl, father, mother, siblings
         } = response.data;
 
         const randomNewborn = {
@@ -30,6 +30,7 @@ function RandomBirth() {
           hospitalStreetViewUrl,
           fatherName: `${father.firstName} ${father.lastName}`,
           motherName: `${mother.firstName} ${mother.lastName}`,
+          siblings: siblings || [],  // Default to an empty array if siblings are null
         };
 
         setNewborn(randomNewborn);
@@ -70,6 +71,20 @@ function RandomBirth() {
           <h3>Parents:</h3>
           <p>Father: {newborn.fatherName}</p>
           <p>Mother: {newborn.motherName}</p>
+
+          {/* Display Siblings */}
+          {newborn.siblings && newborn.siblings.length > 0 ? (
+            <div>
+              <h3>Siblings:</h3>
+              {newborn.siblings.map((sibling, index) => (
+                <p key={index}>
+                  {sibling.firstName} {sibling.lastName} (Age: {sibling.age})
+                </p>
+              ))}
+            </div>
+          ) : (
+            <p>No sibling data is available.</p>
+          )}
         </div>
       )}
     </div>

@@ -42,7 +42,15 @@ app.get("/random-person", (req, res) => {
     // Generate a random person using the static method from the Person class
     const person = Person.createRandomPerson();
 
-    // Send the random person's data in the response
+    // Include random siblings in the response
+    const siblings = person.siblings.length > 0 ? person.siblings.map(sibling => ({
+      firstName: sibling.firstName,
+      lastName: sibling.lastName,
+      age: sibling.age, // Include the sibling's age
+      sex: sibling.sex,
+    })) : null;
+
+    // Send the random person's data in the response, including siblings
     res.json({
       firstName: person.firstName,
       lastName: person.lastName,
@@ -55,7 +63,9 @@ app.get("/random-person", (req, res) => {
       hospitalName: person.hospitalName,
       hospitalStreetViewUrl: person.hospitalStreetViewUrl,
       father: { firstName: person.father.firstName, lastName: person.father.lastName },
-      mother: { firstName: person.mother.firstName, lastName: person.mother.lastName }
+      mother: { firstName: person.mother.firstName, lastName: person.mother.lastName },
+      siblings: siblings,  // Include siblings if any
+      otherRelatives: person.otherRelatives // Other relatives
     });
   } catch (error) {
     console.error("Error generating random person:", error);

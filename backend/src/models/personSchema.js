@@ -10,8 +10,17 @@ const personSchema = new mongoose.Schema({
     looks: { type: Number, default: 50 },
     age: { type: Number, default: 0 },
     hospitalName: { type: String, required: true },
-    hospitalStreetViewUrl: { type: String, required: true }
-});
+    hospitalStreetViewUrl: { type: String, required: true },
+    
+    // Relationships to parents
+    father: { type: mongoose.Schema.Types.ObjectId, ref: "Person" },
+    mother: { type: mongoose.Schema.Types.ObjectId, ref: "Person" },
+    
+    // Sibling references
+    siblings: [{ type: mongoose.Schema.Types.ObjectId, ref: "Person" }],
+    // Other possible relatives
+    otherRelatives: [String]
+}, { timestamps: true });
 
 const Person = mongoose.model("Person", personSchema);
 module.exports = Person;

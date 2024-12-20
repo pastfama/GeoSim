@@ -6,17 +6,17 @@ class Person {
         this.firstName = firstName;
         this.lastName = lastName;
         this.sex = sex;
-        this.happiness = happiness !== null ? happiness : Person.getRandomNumber(0, 100); // Accessing static method
-        this.health = health !== null ? health : Person.getRandomNumber(0, 100); // Accessing static method
-        this.smarts = smarts !== null ? smarts : Person.getRandomNumber(0, 100); // Accessing static method
-        this.looks = looks !== null ? looks : Person.getRandomNumber(0, 100); // Accessing static method
+        this.happiness = happiness !== null ? happiness : Person.getRandomNumber(0, 100);
+        this.health = health !== null ? health : Person.getRandomNumber(0, 100);
+        this.smarts = smarts !== null ? smarts : Person.getRandomNumber(0, 100);
+        this.looks = looks !== null ? looks : Person.getRandomNumber(0, 100);
         this.age = age !== null ? age : 0;
         this.id = uuidv4().slice(0, 6); // Random 6-character ID
 
         // Relationships
         this.father = null;
         this.mother = null;
-        this.siblings = [];
+        this.siblings = []; // Array to store siblings
         this.otherRelatives = [];
 
         // Hospital Location
@@ -67,6 +67,28 @@ class Person {
 
         person.father = new Person(Person.getRandomMaleFirstName(), person.lastName, 'Male');
         person.mother = new Person(Person.getRandomFemaleFirstName(), person.lastName, 'Female');
+
+        // Create siblings for the person
+        const numSiblings = Person.getRandomNumber(0, 5); // Random number of siblings (0-5)
+
+        for (let i = 0; i < numSiblings; i++) {
+            const sibling = new Person(
+                i % 2 === 0 ? Person.getRandomMaleFirstName() : Person.getRandomFemaleFirstName(),
+                person.lastName,
+                i % 2 === 0 ? 'Male' : 'Female',
+                Person.getRandomNumber(0, 100), // Random happiness
+                Person.getRandomNumber(0, 100), // Random health
+                Person.getRandomNumber(0, 100), // Random smarts
+                Person.getRandomNumber(0, 100), // Random looks
+                Person.getRandomNumber(0, 20) // Random age (0-19)
+            );
+            sibling.father = person.father;
+            sibling.mother = person.mother;
+
+            // Add sibling to both persons' sibling arrays
+            person.siblings.push({ id: sibling.id, firstName: sibling.firstName, lastName: sibling.lastName, age: sibling.age });
+            sibling.siblings.push({ id: person.id, firstName: person.firstName, lastName: person.lastName, age: person.age });
+        }
 
         return person;
     }
