@@ -10,29 +10,40 @@ function RandomBirth() {
 
   // Load the Google Maps API script
   useEffect(() => {
-    if (!window.google && !mapsLoaded) {
-      const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY}&callback=initMap`;
-      script.async = true;
-      script.defer = true;
-      script.onload = () => setMapsLoaded(true);
-      script.onerror = () => console.error('Google Maps script failed to load');
-      document.head.appendChild(script);
+    if (!window.google) {
+      if (!document.querySelector('#google-maps-script')) {
+        const script = document.createElement('script');
+        script.id = 'google-maps-script';
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY}&callback=initMap&loading=async`;
+        script.async = true;
+        script.defer = true;
 
-      return () => {
-        document.head.removeChild(script);
-      };
+        script.onload = () => setMapsLoaded(true);
+        script.onerror = () => {
+          console.error('Google Maps script failed to load');
+          setError('Error loading Google Maps. Please try again.');
+        };
+
+        document.head.appendChild(script);
+      } else {
+        setMapsLoaded(true);
+      }
+    } else {
+      setMapsLoaded(true);
     }
-  }, [mapsLoaded]);
+  }, []);
 
   // Fetch a random person on mount
   useEffect(() => {
-    const generateRandomBirth = async () => {
+    const fetchNewborn = async () => {
       try {
         const response = await axios.get('http://localhost:5000/random-person');
-        const { firstName, lastName, sex, happiness, health, smarts, looks, age, hospitalName, hospitalGeoData, father, mother, siblings } = response.data;
+        const {
+          firstName, lastName, sex, happiness, health, smarts, looks, age,
+          hospitalName, hospitalGeoData, father, mother, siblings,
+        } = response.data;
 
-        const randomNewborn = {
+        setNewborn({
           firstName,
           lastName,
           sex,
@@ -47,25 +58,23 @@ function RandomBirth() {
           fatherName: `${father.firstName} ${father.lastName}`,
           motherName: `${mother.firstName} ${mother.lastName}`,
           siblings: siblings || [],
-        };
-
-        setNewborn(randomNewborn);
+        });
         setLoading(false);
       } catch (error) {
-        setError('Error generating random birth. Please try again.');
+        setError('Error fetching newborn data. Please try again.');
         setLoading(false);
       }
     };
 
-    generateRandomBirth();
+    fetchNewborn();
   }, []);
 
   // Initialize the Google Map
-  const initMap = () => {
-    if (newborn.hospitalLatitude && newborn.hospitalLongitude && window.google) {
+  useEffect(() => {
+    if (mapsLoaded && newborn.hospitalLatitude && newborn.hospitalLongitude) {
       const map = new window.google.maps.Map(document.getElementById('map'), {
-        center: { lat: 39.8283, lng: -98.5795 }, // Center of the US
-        zoom: 3, // Zoom out more to show all of North America
+        center: { lat: 39.8283, lng: -98.5795 }, // Center of the USA
+        zoom: 3, // Zoom out to show all of North America
       });
 
       new window.google.maps.Marker({
@@ -74,18 +83,14 @@ function RandomBirth() {
         title: newborn.hospitalName,
       });
     }
-  };
-
-  useEffect(() => {
-    if (mapsLoaded && newborn.hospitalLatitude && newborn.hospitalLongitude) {
-      initMap();
-    }
   }, [mapsLoaded, newborn]);
 
+  // Handle Next button click (reloads the page)
   const handleNext = () => {
     window.location.reload();
   };
 
+  // Handle Accept button click (saves newborn data and redirects)
   const handleAccept = async () => {
     try {
       await axios.post('http://localhost:5000/save-newborn', newborn);
@@ -103,7 +108,7 @@ function RandomBirth() {
         <p className="error-message">{error}</p>
       ) : (
         <div className="content-container">
-          {/* Left Block (Newborn Info) */}
+          {/* Left Block (Newborn Data) */}
           <div className="left-block">
             <h1>Newborn's Attributes</h1>
             <table className="newborn-table">
@@ -121,7 +126,6 @@ function RandomBirth() {
             <h3>Parents</h3>
             <p><strong>Father:</strong> {newborn.fatherName}</p>
             <p><strong>Mother:</strong> {newborn.motherName}</p>
-
             {newborn.siblings.length > 0 && (
               <div>
                 <h3>Siblings</h3>
@@ -130,8 +134,6 @@ function RandomBirth() {
                 ))}
               </div>
             )}
-
-            {/* Next Button (Red) */}
             <div className="button-container">
               <button className="next-button" onClick={handleNext}>Next</button>
             </div>
@@ -139,8 +141,7 @@ function RandomBirth() {
 
           {/* Right Block (Google Map) */}
           <div className="right-block">
-            <div id="map" style={{ height: '100%', width: '100%' }}></div>
-            {/* Accept Button (Green) */}
+            <div id="map" style={{ height: '200px', width: '100%' }}></div>
             <div className="button-container">
               <button className="accept-button" onClick={handleAccept}>Accept</button>
             </div>
