@@ -1,68 +1,85 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    padding-top: 20px;
-    height: 100vh;
-    margin: 0;
-}
-
-.container {
+.random-birth-container {
     display: flex;
     flex-direction: column;
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    width: 80%;
-    max-width: 1000px;
-    padding: 20px;
-}
-
-.content {
+    align-items: center;
+    padding: 10px;
+    box-sizing: border-box;
+  }
+  
+  .content-container {
     display: flex;
     justify-content: space-between;
-    gap: 20px;
-}
-
-.person-info {
-    flex: 1;
-    max-width: 45%;
-}
-
-.hospital-map {
-    flex: 1;
-    max-width: 45%;
-}
-
-h1 {
-    text-align: center;
-    color: #333;
-}
-
-h3 {
-    margin-top: 20px;
-    color: #333;
-}
-
-p {
-    font-size: 16px;
-    color: #555;
-}
-
-iframe {
-    border: 0;
     width: 100%;
-    height: 400px;
-}
-
-strong {
-    font-weight: bold;
-}
+    max-width: 1200px;
+    gap: 15px;
+  }
+  
+  .left-block, .right-block {
+    width: 48%;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-size: 14px;
+  }
+  
+  .newborn-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .newborn-table td {
+    padding: 5px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+  }
+  
+  button {
+    padding: 8px;
+    font-size: 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .next-button {
+    background-color: red;
+    color: white;
+  }
+  
+  .accept-button {
+    background-color: green;
+    color: white;
+  }
+  
+  .button-container {
+    margin-top: auto;
+  }
+  
+  h1, h3 {
+    font-size: 1rem;
+  }
+  
+  h3 {
+    margin-top: 15px;
+  }
+  
+  #map {
+    height: 200px;
+    width: 100%;
+  }
+  
+  @media (max-width: 768px) {
+    .content-container {
+      flex-direction: column;
+      align-items: center;
+    }
+    .left-block, .right-block {
+      width: 100%;
+      margin-bottom: 15px;
+    }
+    #map {
+      height: 180px;
+    }
+  }
+  

@@ -1,16 +1,142 @@
 [
   {
-    "name": "City General Hospital",
+    "name": "Parkland Memorial Hospital",
     "geoData": {
-      "latitude": 40.7128,
-      "longitude": -74.0060
+      "latitude": 32.8120,
+      "longitude": -96.8406
     }
   },
   {
-    "name": "St. Mary's Medical Center",
+    "name": "Ben Taub Hospital",
     "geoData": {
-      "latitude": 34.0522,
-      "longitude": -118.2437
+      "latitude": 29.7100,
+      "longitude": -95.3980
+    }
+  },
+  {
+    "name": "Jackson Memorial Hospital",
+    "geoData": {
+      "latitude": 25.7911,
+      "longitude": -80.2105
+    }
+  },
+  {
+    "name": "Cedars-Sinai Medical Center",
+    "geoData": {
+      "latitude": 34.0750,
+      "longitude": -118.3802
+    }
+  },
+  {
+    "name": "NewYork-Presbyterian Hospital",
+    "geoData": {
+      "latitude": 40.8417,
+      "longitude": -73.9410
+    }
+  },
+  {
+    "name": "Northwestern Memorial Hospital",
+    "geoData": {
+      "latitude": 41.8940,
+      "longitude": -87.6216
+    }
+  },
+  {
+    "name": "Boston Children's Hospital",
+    "geoData": {
+      "latitude": 42.3364,
+      "longitude": -71.1057
+    }
+  },
+  {
+    "name": "Children's Hospital of Philadelphia",
+    "geoData": {
+      "latitude": 39.9493,
+      "longitude": -75.1937
+    }
+  },
+  {
+    "name": "Stanford Health Care",
+    "geoData": {
+      "latitude": 37.4349,
+      "longitude": -122.1743
+    }
+  },
+  {
+    "name": "Johns Hopkins Hospital",
+    "geoData": {
+      "latitude": 39.2965,
+      "longitude": -76.5920
+    }
+  },
+  {
+    "name": "Mayo Clinic Hospital",
+    "geoData": {
+      "latitude": 44.0217,
+      "longitude": -92.4699
+    }
+  },
+  {
+    "name": "Cleveland Clinic",
+    "geoData": {
+      "latitude": 41.5024,
+      "longitude": -81.6206
+    }
+  },
+  {
+    "name": "Texas Children's Hospital",
+    "geoData": {
+      "latitude": 29.7078,
+      "longitude": -95.4024
+    }
+  },
+  {
+    "name": "UCLA Medical Center",
+    "geoData": {
+      "latitude": 34.0656,
+      "longitude": -118.4445
+    }
+  },
+  {
+    "name": "UCSF Medical Center",
+    "geoData": {
+      "latitude": 37.7631,
+      "longitude": -122.4577
+    }
+  },
+  {
+    "name": "Emory University Hospital",
+    "geoData": {
+      "latitude": 33.7946,
+      "longitude": -84.3225
+    }
+  },
+  {
+    "name": "Duke University Hospital",
+    "geoData": {
+      "latitude": 36.0053,
+      "longitude": -78.9371
+    }
+  },
+  {
+    "name": "University of Michigan Hospitals",
+    "geoData": {
+      "latitude": 42.2808,
+      "longitude": -83.7307
+    }
+  },
+  {
+    "name": "Barnes-Jewish Hospital",
+    "geoData": {
+      "latitude": 38.6365,
+      "longitude": -90.2629
+    }
+  },
+  {
+    "name": "Brigham and Women's Hospital",
+    "geoData": {
+      "latitude": 42.3365,
+      "longitude": -71.1062
     }
   }
 ]

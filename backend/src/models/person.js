@@ -23,18 +23,26 @@ class Person {
         const randomHospital = Person.getRandomHospital();
         this.hospitalName = randomHospital.name;
         this.hospitalGeoData = randomHospital.geoData;
-
-        // Generate the Street View URL based on latitude and longitude
-        this.hospitalStreetViewUrl = `https://maps.google.com/?q=${this.hospitalGeoData.latitude},${this.hospitalGeoData.longitude}&layer=c&cbll=${this.hospitalGeoData.latitude},${this.hospitalGeoData.longitude}`;
     }
 
-    static getRandomNumber(min, max) {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
+    static getRandomHospital() {
+        try {
+            const hospitals = JSON.parse(fs.readFileSync('./assets/hospitals.json', 'utf8'));
+            return hospitals[Math.floor(Math.random() * hospitals.length)];
+        } catch (error) {
+            console.error('Error reading hospitals.json:', error);
+            throw new Error('Unable to load hospital data.');
+        }
     }
 
     static getRandomFromFile(filePath) {
-        const names = fs.readFileSync(filePath, 'utf8').split('\n').map(name => name.trim());
-        return names[Math.floor(Math.random() * names.length)];
+        try {
+            const names = fs.readFileSync(filePath, 'utf8').split('\n').map(name => name.trim());
+            return names[Math.floor(Math.random() * names.length)];
+        } catch (error) {
+            console.error(`Error reading file ${filePath}:`, error);
+            throw new Error(`Unable to load data from ${filePath}.`);
+        }
     }
 
     static getRandomMaleFirstName() {
@@ -49,25 +57,24 @@ class Person {
         return Person.getRandomFromFile('./assets/last_names.txt');
     }
 
-    static getRandomHospital() {
-        const hospitals = JSON.parse(fs.readFileSync('./assets/hospitals.json', 'utf8')); // Read hospitals from JSON file
-        return hospitals[Math.floor(Math.random() * hospitals.length)];
+    static getRandomNumber(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
     static createRandomPerson() {
         const person = new Person();
         const isMale = Math.random() < 0.5;
-
+    
         person.firstName = isMale ? Person.getRandomMaleFirstName() : Person.getRandomFemaleFirstName();
         person.sex = isMale ? 'Male' : 'Female';
         person.lastName = Person.getRandomLastName();
-
+    
         person.father = new Person(Person.getRandomMaleFirstName(), person.lastName, 'Male');
         person.mother = new Person(Person.getRandomFemaleFirstName(), person.lastName, 'Female');
-
+    
         // Create siblings for the person
         const numSiblings = Person.getRandomNumber(0, 5); // Random number of siblings (0-5)
-
+    
         for (let i = 0; i < numSiblings; i++) {
             const sibling = new Person(
                 i % 2 === 0 ? Person.getRandomMaleFirstName() : Person.getRandomFemaleFirstName(),
@@ -81,14 +88,22 @@ class Person {
             );
             sibling.father = person.father;
             sibling.mother = person.mother;
-
+    
             // Add sibling to both persons' sibling arrays
             person.siblings.push({ id: sibling.id, firstName: sibling.firstName, lastName: sibling.lastName, age: sibling.age });
             sibling.siblings.push({ id: person.id, firstName: person.firstName, lastName: person.lastName, age: person.age });
         }
-
+    
+        // Ensure the hospital data exists and has geolocation data
+        const randomHospital = Person.getRandomHospital();
+        const hospitalGeoData = randomHospital.geoData || { latitude: 0, longitude: 0 };
+    
+        person.hospitalName = randomHospital.name;
+        person.hospitalGeoData = hospitalGeoData;
+    
         return person;
     }
+    
 }
 
 module.exports = Person;

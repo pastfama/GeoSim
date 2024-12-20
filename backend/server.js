@@ -3,6 +3,7 @@ const connectDB = require("./src/config/db"); // Import the database connection
 const express = require("express"); // Ensure express is required
 const cors = require("cors"); // Import the CORS middleware
 const helmet = require("helmet"); // Import the helmet middleware for security headers
+const axios = require("axios"); // For making API requests
 const app = express(); // Initialize express
 const Person = require("./src/models/person"); // Import the Person class
 
@@ -36,11 +37,36 @@ app.use(
 // Connect to MongoDB
 connectDB();
 
+// Helper function to get hospital data (latitude and longitude)
+async function getHospitalGeoData(hospitalName) {
+  const apiKey = process.env.GOOGLE_MAPS_API_KEY; // Fetch from backend environment
+  const address = encodeURIComponent(hospitalName); // Ensure the name is encoded for use in a URL
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${apiKey}`;
+
+  try {
+    const response = await axios.get(url);
+    const result = response.data.results[0]; // Take the first result from the geocode response
+    const location = result.geometry.location;
+
+    // Return latitude and longitude
+    return {
+      latitude: location.lat,
+      longitude: location.lng
+    };
+  } catch (error) {
+    console.error("Error fetching hospital geo data:", error);
+    throw new Error("Could not fetch hospital geo data");
+  }
+}
+
 // Define the /random-person route to generate a random person
-app.get("/random-person", (req, res) => {
+app.get("/random-person", async (req, res) => {
   try {
     // Generate a random person using the static method from the Person class
     const person = Person.createRandomPerson();
+
+    // Get the hospital geo data (latitude and longitude) for the hospital
+    const hospitalGeoData = await getHospitalGeoData(person.hospitalName);
 
     // Include random siblings in the response
     const siblings = person.siblings.length > 0 ? person.siblings.map(sibling => ({
@@ -50,7 +76,7 @@ app.get("/random-person", (req, res) => {
       sex: sibling.sex,
     })) : null;
 
-    // Send the random person's data in the response, including siblings
+    // Send the random person's data in the response, including hospital geo data
     res.json({
       firstName: person.firstName,
       lastName: person.lastName,
@@ -61,7 +87,7 @@ app.get("/random-person", (req, res) => {
       looks: person.looks,
       age: person.age,
       hospitalName: person.hospitalName,
-      hospitalStreetViewUrl: person.hospitalStreetViewUrl,
+      hospitalGeoData: hospitalGeoData, // Send latitude and longitude instead of StreetView URL
       father: { firstName: person.father.firstName, lastName: person.father.lastName },
       mother: { firstName: person.mother.firstName, lastName: person.mother.lastName },
       siblings: siblings,  // Include siblings if any
