@@ -1,74 +1,79 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
-const RandomBirth = () => {
-  const [hospital, setHospital] = useState(null);
-  const [error, setError] = useState("");
+function RandomBirth() {
+  const [newborn, setNewborn] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Fetch a random hospital from the backend
-    const fetchHospital = async () => {
+    // Function to simulate random birth attributes
+    const generateRandomBirth = async () => {
       try {
-        const response = await axios.get("/api/game/random-birth");
-        setHospital(response.data.hospital);
-      } catch (err) {
-        setError("Failed to fetch hospital data. Please try again.");
-        console.error(err);
+        // Fetch random person data from the backend (which now includes hospital and family details)
+        const response = await axios.get('http://localhost:5000/random-person');
+        const { 
+          firstName, lastName, sex, happiness, health, smarts, looks, age, 
+          hospitalName, hospitalStreetViewUrl, father, mother 
+        } = response.data;
+
+        const randomNewborn = {
+          firstName,
+          lastName,
+          sex,
+          happiness,
+          health,
+          smarts,
+          looks,
+          age,
+          hospitalName,
+          hospitalStreetViewUrl,
+          fatherName: `${father.firstName} ${father.lastName}`,
+          motherName: `${mother.firstName} ${mother.lastName}`,
+        };
+
+        setNewborn(randomNewborn);
+        setLoading(false);
+      } catch (error) {
+        setError('Error generating random birth. Please try again.');
+        setLoading(false);
       }
     };
 
-    fetchHospital();
-  }, []);
-
-  if (error) {
-    return <div className="error">{error}</div>;
-  }
-
-  if (!hospital) {
-    return <div>Loading...</div>;
-  }
-
-  const { name, city, state, latitude, longitude } = hospital;
-
-  // Google Street View Embed URL
-  const streetViewUrl = `https://www.google.com/maps/embed/v1/streetview?key=${process.env.REACT_APP_GOOGLE_API_KEY}&location=${latitude},${longitude}&heading=210&pitch=10&fov=75`;
+    generateRandomBirth();
+  }, []); // Empty dependency array ensures the effect runs only once when the component mounts
 
   return (
-    <div style={{ textAlign: "center", padding: "20px" }}>
-      <h1>Welcome to the World!</h1>
-      <h2>You were born at:</h2>
-      <p>
-        <strong>{name}</strong>
-        <br />
-        {city}, {state}
-      </p>
-      <div style={{ margin: "20px 0" }}>
-        <iframe
-          title="Google Street View"
-          src={streetViewUrl}
-          width="600"
-          height="400"
-          style={{ border: "0" }}
-          allowFullScreen
-          loading="lazy"
-        ></iframe>
-      </div>
-      <button
-        onClick={() => alert("Continue to the next stage!")}
-        style={{
-          padding: "10px 20px",
-          fontSize: "16px",
-          backgroundColor: "#4CAF50",
-          color: "white",
-          border: "none",
-          borderRadius: "5px",
-          cursor: "pointer",
-        }}
-      >
-        Continue
-      </button>
+    <div>
+      {loading ? (
+        <p>Loading newborn's attributes...</p>
+      ) : error ? (
+        <p style={{ color: 'red' }}>{error}</p>
+      ) : (
+        <div>
+          <h1>Newborn's Attributes</h1>
+          <p>Name: {newborn.firstName} {newborn.lastName}</p>
+          <p>Gender: {newborn.sex}</p>
+          <p>Age: {newborn.age}</p>
+          <p>Happiness: {newborn.happiness}</p>
+          <p>Health: {newborn.health}</p>
+          <p>Smarts: {newborn.smarts}</p>
+          <p>Looks: {newborn.looks}</p>
+          
+          {/* Display Hospital Info */}
+          <h3>Born at: {newborn.hospitalName}</h3>
+          <a href={newborn.hospitalStreetViewUrl} target="_blank" rel="noopener noreferrer">
+            View Hospital Street View
+          </a>
+
+          {/* Display Parents */}
+          <h3>Parents:</h3>
+          <p>Father: {newborn.fatherName}</p>
+          <p>Mother: {newborn.motherName}</p>
+        </div>
+      )}
     </div>
   );
-};
+}
 
 export default RandomBirth;
