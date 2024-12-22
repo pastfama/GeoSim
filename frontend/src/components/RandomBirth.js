@@ -6,62 +6,36 @@ function RandomBirth() {
   const [newborn, setNewborn] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [mapsLoaded, setMapsLoaded] = useState(false);
+  const [mapLoaded, setMapLoaded] = useState(false); // Track if map is loaded
 
-  // Define the initMap function
-  const initMap = () => {
-    if (newborn.hospitalLatitude && newborn.hospitalLongitude) {
-      const map = new window.google.maps.Map(document.getElementById('map'), {
-        center: { lat: 39.8283, lng: -98.5795 }, // Center of the USA
-        zoom: 3, // Zoom out to show all of North America
-      });
-
-      new window.google.maps.Marker({
-        position: { lat: newborn.hospitalLatitude, lng: newborn.hospitalLongitude },
-        map,
-        title: newborn.hospitalName,
-      });
-    }
-  };
-
-  // Load the Google Maps API script
   useEffect(() => {
     if (!window.google) {
-      if (!document.querySelector('#google-maps-script')) {
-        const script = document.createElement('script');
-        script.id = 'google-maps-script';
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY}&callback=initMap&loading=async`;
-        script.async = true;
-        script.defer = true;
-
-        script.onload = () => setMapsLoaded(true);
-        script.onerror = () => {
-          console.error('Google Maps script failed to load');
-          setError('Error loading Google Maps. Please try again.');
-        };
-
-        document.head.appendChild(script);
-      } else {
-        setMapsLoaded(true);
-      }
-    } else {
-      setMapsLoaded(true);
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY}&callback=initMap`;
+      script.async = true;
+      script.defer = true;
+      script.id = 'google-maps-script';
+      script.onload = () => {
+        console.log('Google Maps script loaded successfully');
+        setMapLoaded(true);
+      };
+      script.onerror = () => {
+        console.error('Error loading Google Maps script');
+        setError('Error loading Google Maps. Please try again.');
+      };
+      document.head.appendChild(script);
     }
   }, []);
 
-  // Fetch a random person and create the character on mount
   const fetchNewborn = async () => {
     try {
       setLoading(true);
-      // Fetch the newborn's details from the backend API
       const response = await axios.get('http://localhost:5000/api/person/create-character');
-      
-      console.log(response.data);  // Check the API response
+      console.log('API Response:', response.data); // Check the API response
 
-      const { firstName, lastName, sex, happiness, health, smarts, looks, age, hospitalName, hospitalGeoData, father, mother, siblings } = response.data.person;
+      const { firstName, lastName, sex, happiness, health, smarts, looks, age, hospitalName, father, mother, siblings } = response.data.person;
 
-      // Add checks to ensure values are not undefined
-      setNewborn({
+      const newbornData = {
         firstName,
         lastName,
         sex,
@@ -69,33 +43,71 @@ function RandomBirth() {
         health,
         smarts,
         looks,
-        age,
+        age: 0, // Set age to 0
         hospitalName,
-        hospitalLatitude: hospitalGeoData ? hospitalGeoData.latitude : null,
-        hospitalLongitude: hospitalGeoData ? hospitalGeoData.longitude : null,
         fatherName: father ? `${father.firstName} ${father.lastName}` : 'Unknown',
         motherName: mother ? `${mother.firstName} ${mother.lastName}` : 'Unknown',
         siblings: siblings || [],
-      });
+      };
 
+      window.newbornData = newbornData;
+
+      // Get coordinates for the hospital
+      await geocodeHospital(hospitalName);
+
+      setNewborn(newbornData);
       setLoading(false);
     } catch (error) {
-      console.error("Error fetching data from API:", error);  // Log the full error
+      console.error('Error fetching data:', error);
       setError('Error fetching newborn data. Please try again.');
       setLoading(false);
     }
   };
 
+  const geocodeHospital = async (hospitalName) => {
+    try {
+      const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(hospitalName)}&key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY}`;
+      const geocodeResponse = await axios.get(geocodeUrl);
+      const location = geocodeResponse.data.results[0]?.geometry?.location;
+
+      if (location) {
+        console.log('Hospital coordinates:', location.lat, location.lng);
+        window.newbornData.hospitalLatitude = location.lat;
+        window.newbornData.hospitalLongitude = location.lng;
+      } else {
+        console.error('Coordinates not found for hospital:', hospitalName);
+      }
+    } catch (error) {
+      console.error('Error fetching hospital coordinates:', error);
+    }
+  };
+
   useEffect(() => {
-    fetchNewborn(); // Fetch a newborn when the component mounts
+    fetchNewborn(); // Fetch newborn data when component mounts
   }, []);
 
-  // Initialize the Google Map after data is loaded
   useEffect(() => {
-    if (mapsLoaded && newborn.hospitalLatitude && newborn.hospitalLongitude) {
-      initMap();
+    if (mapLoaded && window.newbornData?.hospitalLatitude && window.newbornData?.hospitalLongitude) {
+      console.log('Initializing map with coordinates:', window.newbornData.hospitalLatitude, window.newbornData.hospitalLongitude);
+      
+      const map = new window.google.maps.Map(document.getElementById('map'), {
+        center: {
+          lat: window.newbornData.hospitalLatitude,
+          lng: window.newbornData.hospitalLongitude,
+        },
+        zoom: 10, // Zoom into the hospital location
+      });
+
+      new window.google.maps.Marker({
+        position: {
+          lat: window.newbornData.hospitalLatitude,
+          lng: window.newbornData.hospitalLongitude,
+        },
+        map,
+        title: window.newbornData.hospitalName,
+      });
     }
-  }, [mapsLoaded, newborn]);
+  }, [mapLoaded, newborn]); // Trigger map initialization once coordinates are ready
 
   return (
     <div className="random-birth-container">
@@ -138,7 +150,7 @@ function RandomBirth() {
 
           {/* Right Block (Google Map) */}
           <div className="right-block">
-            <div id="map" style={{ height: '200px', width: '100%' }}></div>
+            <div id="map" style={{ height: '400px', width: '100%' }}></div>
           </div>
         </div>
       )}
