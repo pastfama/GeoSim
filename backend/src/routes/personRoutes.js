@@ -1,60 +1,73 @@
 const express = require("express");
+const axios = require("axios");
+const Person = require("../models/person"); // Import the Person class
 const router = express.Router();
-const Person = require("../models/person");
-const PersonModel = require("../models/personSchema"); // Assuming you have the Person schema defined
 
-// Route to create a random person (already present)
-router.post("/create-random", async (req, res) => {
+// Helper function to get hospital data (latitude and longitude)
+async function getHospitalGeoData(hospitalName) {
+  const apiKey = process.env.GOOGLE_MAPS_API_KEY; // Fetch from backend environment
+  const address = encodeURIComponent(hospitalName); // Ensure the name is encoded for use in a URL
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${apiKey}`;
+
   try {
-    const randomPerson = Person.createRandomPerson();
-    await randomPerson.saveToDatabase();
-    res.status(201).json({ message: "Random person created successfully!", person: randomPerson });
+    const response = await axios.get(url);
+    
+    // Check if results exist
+    if (!response.data.results || response.data.results.length === 0) {
+      throw new Error("No geodata found for the given hospital name.");
+    }
+    
+    const result = response.data.results[0]; // Take the first result from the geocode response
+    const location = result.geometry.location;
+
+    // Return latitude and longitude
+    return {
+      latitude: location.lat,
+      longitude: location.lng
+    };
   } catch (error) {
-    res.status(500).json({ error: "Failed to create random person." });
+    console.error("Error fetching hospital geo data:", error);
+    throw new Error("Could not fetch hospital geo data. Please check the hospital name.");
   }
-});
+}
 
-// Route to retrieve all persons (already present)
-router.get("/", async (req, res) => {
+// Define the /random-person route to generate a random person
+router.get("/random-person", async (req, res) => {
   try {
-    const persons = await PersonModel.find();
-    res.status(200).json(persons);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to retrieve persons." });
-  }
-});
+    // Generate a random person using the static method from the Person class
+    const person = Person.createRandomPerson();
 
-// New route to save newborn data to MongoDB
-router.post("/save-newborn", async (req, res) => {
-  try {
-    // Receive the newborn data from the request body
-    const newbornData = req.body;
+    // Get the hospital geo data (latitude and longitude) for the hospital
+    const hospitalGeoData = await getHospitalGeoData(person.hospitalName);
 
-    // Create a new Person instance with the newborn data
-    const newborn = new PersonModel({
-      firstName: newbornData.firstName,
-      lastName: newbornData.lastName,
-      sex: newbornData.sex,
-      happiness: newbornData.happiness,
-      health: newbornData.health,
-      smarts: newbornData.smarts,
-      looks: newbornData.looks,
-      age: newbornData.age,
-      hospitalName: newbornData.hospitalName,
-      hospitalStreetViewUrl: newbornData.hospitalStreetViewUrl,
-      fatherName: newbornData.fatherName,
-      motherName: newbornData.motherName,
-      siblings: newbornData.siblings,
+    // Include random siblings in the response
+    const siblings = person.siblings.length > 0 ? person.siblings.map(sibling => ({
+      firstName: sibling.firstName,
+      lastName: sibling.lastName,
+      age: sibling.age, // Include the sibling's age
+      sex: sibling.sex,
+    })) : null;
+
+    // Send the random person's data in the response, including hospital geo data
+    res.json({
+      firstName: person.firstName,
+      lastName: person.lastName,
+      sex: person.sex,
+      happiness: person.happiness,
+      health: person.health,
+      smarts: person.smarts,
+      looks: person.looks,
+      age: person.age,
+      hospitalName: person.hospitalName,
+      hospitalGeoData: hospitalGeoData, // Send latitude and longitude instead of StreetView URL
+      father: { firstName: person.father.firstName, lastName: person.father.lastName },
+      mother: { firstName: person.mother.firstName, lastName: person.mother.lastName },
+      siblings: siblings,  // Include siblings if any
+      otherRelatives: person.otherRelatives // Other relatives
     });
-
-    // Save the newborn data to MongoDB
-    await newborn.save();
-
-    // Send a success response
-    res.status(200).json({ message: "Newborn saved successfully!", newborn });
   } catch (error) {
-    // Handle any errors and send an error response
-    res.status(500).json({ error: "Error saving newborn data" });
+    console.error("Error generating random person:", error);
+    res.status(500).send("Error generating random person: " + error.message);
   }
 });
 

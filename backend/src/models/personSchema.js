@@ -10,7 +10,6 @@ const personSchema = new mongoose.Schema({
     looks: { type: Number, default: 50 },
     age: { type: Number, default: 0 },
     hospitalName: { type: String, required: true },
-    hospitalStreetViewUrl: { type: String, required: true },
     
     // Relationships to parents
     father: { type: mongoose.Schema.Types.ObjectId, ref: "Person" },

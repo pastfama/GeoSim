@@ -33,41 +33,110 @@ function RandomBirth() {
     }
   }, []);
 
-  // Fetch a random person on mount
+  // Fetch a random person on mount and create the character
+  const fetchNewborn = async () => {
+    try {
+      setLoading(true);
+      // Fetch the newborn's details from the backend API
+      const response = await axios.get('http://localhost:5000/api/person/random-person');
+      const {
+        firstName, lastName, sex, happiness, health, smarts, looks, age,
+        hospitalName, hospitalGeoData, father, mother, siblings,
+      } = response.data;
+
+      // Set the newborn data into state
+      setNewborn({
+        firstName,
+        lastName,
+        sex,
+        happiness,
+        health,
+        smarts,
+        looks,
+        age,
+        hospitalName,
+        hospitalLatitude: hospitalGeoData.latitude,
+        hospitalLongitude: hospitalGeoData.longitude,
+        fatherName: `${father.firstName} ${father.lastName}`,
+        motherName: `${mother.firstName} ${mother.lastName}`,
+        siblings: siblings || [],
+      });
+
+      setLoading(false);
+    } catch (error) {
+      setError('Error fetching newborn data. Please try again.');
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchNewborn = async () => {
-      try {
-        const response = await axios.get('http://localhost:5000/random-person');
-        const {
-          firstName, lastName, sex, happiness, health, smarts, looks, age,
-          hospitalName, hospitalGeoData, father, mother, siblings,
-        } = response.data;
-
-        setNewborn({
-          firstName,
-          lastName,
-          sex,
-          happiness,
-          health,
-          smarts,
-          looks,
-          age,
-          hospitalName,
-          hospitalLatitude: hospitalGeoData.latitude,
-          hospitalLongitude: hospitalGeoData.longitude,
-          fatherName: `${father.firstName} ${father.lastName}`,
-          motherName: `${mother.firstName} ${mother.lastName}`,
-          siblings: siblings || [],
-        });
-        setLoading(false);
-      } catch (error) {
-        setError('Error fetching newborn data. Please try again.');
-        setLoading(false);
-      }
-    };
-
-    fetchNewborn();
+    fetchNewborn(); // Fetch a newborn when the component mounts
   }, []);
+
+  // Save the newborn and their relatives (father, mother, siblings)
+  const saveAllPeople = async () => {
+    try {
+      // Save the newborn
+      const newbornData = { ...newborn };
+      await axios.post('http://localhost:5000/api/person/save-newborn', newbornData);
+
+      // Save father, mother, and siblings
+      const saveRelative = async (relativeData) => {
+        await axios.post('http://localhost:5000/api/person/save-newborn', relativeData);
+      };
+
+      const fatherData = {
+        firstName: newborn.fatherName.split(' ')[0],
+        lastName: newborn.lastName, // same last name as newborn
+        sex: 'Male',
+        hospitalName: newborn.hospitalName,
+        hospitalGeoData: {
+          latitude: newborn.hospitalLatitude,
+          longitude: newborn.hospitalLongitude,
+        },
+      };
+
+      const motherData = {
+        firstName: newborn.motherName.split(' ')[0],
+        lastName: newborn.lastName, // same last name as newborn
+        sex: 'Female',
+        hospitalName: newborn.hospitalName,
+        hospitalGeoData: {
+          latitude: newborn.hospitalLatitude,
+          longitude: newborn.hospitalLongitude,
+        },
+      };
+
+      // Save the father and mother
+      await saveRelative(fatherData);
+      await saveRelative(motherData);
+
+      // Save siblings
+      for (const sibling of newborn.siblings) {
+        const siblingData = {
+          firstName: sibling.firstName,
+          lastName: sibling.lastName,
+          sex: sibling.sex,
+          happiness: sibling.happiness,
+          health: sibling.health,
+          smarts: sibling.smarts,
+          looks: sibling.looks,
+          age: sibling.age,
+          hospitalName: newborn.hospitalName,
+          hospitalGeoData: {
+            latitude: newborn.hospitalLatitude,
+            longitude: newborn.hospitalLongitude,
+          },
+        };
+        await saveRelative(siblingData);
+      }
+
+      // After saving all people, redirect to the main menu
+      window.location.href = '/main-menu';
+    } catch (error) {
+      setError('Error saving people data. Please try again.');
+    }
+  };
 
   // Initialize the Google Map
   useEffect(() => {
@@ -84,21 +153,6 @@ function RandomBirth() {
       });
     }
   }, [mapsLoaded, newborn]);
-
-  // Handle Next button click (reloads the page)
-  const handleNext = () => {
-    window.location.reload();
-  };
-
-  // Handle Accept button click (saves newborn data and redirects)
-  const handleAccept = async () => {
-    try {
-      await axios.post('http://localhost:5000/save-newborn', newborn);
-      window.location.href = '/main-menu';
-    } catch (error) {
-      setError('Error saving newborn data. Please try again.');
-    }
-  };
 
   return (
     <div className="random-birth-container">
@@ -135,16 +189,14 @@ function RandomBirth() {
               </div>
             )}
             <div className="button-container">
-              <button className="next-button" onClick={handleNext}>Next</button>
+              <button className="accept-button" onClick={saveAllPeople}>Accept</button>
+              <button className="next-button" onClick={fetchNewborn}>Next</button>
             </div>
           </div>
 
           {/* Right Block (Google Map) */}
           <div className="right-block">
             <div id="map" style={{ height: '200px', width: '100%' }}></div>
-            <div className="button-container">
-              <button className="accept-button" onClick={handleAccept}>Accept</button>
-            </div>
           </div>
         </div>
       )}
