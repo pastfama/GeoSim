@@ -1,34 +1,31 @@
-const Person = require('../models/person'); // Import the Person model
+const Person = require('../models/person');  // Make sure you are importing Person model correctly
 
-// Route to create and save a new character (newborn)
+// Create and save a new character
 exports.createCharacter = async (req, res) => {
   try {
-    // Generate a random person (character)
-    const person = new Person({
-      firstName: "John", // You can customize this as needed
-      lastName: "Doe",   // Customize as needed
-      sex: "Male", // or "Female"
-      hospitalName: "Example Hospital", // You can replace with a random hospital name
-    });
-
-    // Save the person to the database
-    const savedPerson = await person.save();
-
+    // Create and save a random person
+    const savedPerson = await Person.createRandomPerson();  // Static method is being called here
+  
     res.status(201).json({
       message: 'Character created and saved successfully!',
       person: savedPerson,
     });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to create character.' });
+    console.error('Error in createCharacter:', error);
+    // Log the error with provided data for debugging
+    console.log('Error data:', req.body);  
+    res.status(500).json({
+      error: 'Failed to create character.',
+      errorMessage: error.message,  // Provide the actual error message for debugging
+    });
   }
 };
 
-// Route to load a person by ID
+// Load a person by ID
 exports.loadPerson = async (req, res) => {
   try {
     const personId = req.params.id;
-    const person = await Person.findById(personId)
-      .populate('father mother siblings'); // Populate relationships with other people
+    const person = await Person.findById(personId);
 
     if (!person) {
       return res.status(404).json({ message: 'Person not found.' });
@@ -36,11 +33,12 @@ exports.loadPerson = async (req, res) => {
 
     res.status(200).json(person);
   } catch (error) {
+    console.error("Error in loadPerson:", error);
     res.status(500).json({ error: 'Failed to load person.' });
   }
 };
 
-// Route to save a person (if any updates are needed)
+// Update a person by ID
 exports.savePerson = async (req, res) => {
   try {
     const personId = req.params.id;
@@ -57,6 +55,7 @@ exports.savePerson = async (req, res) => {
       person: updatedPerson,
     });
   } catch (error) {
+    console.error("Error in savePerson:", error);
     res.status(500).json({ error: 'Failed to update person.' });
   }
 };
