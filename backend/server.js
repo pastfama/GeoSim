@@ -1,5 +1,5 @@
 const dotenv = require("dotenv");
-const connectDB = require("./src/config/db"); // Import the database connection
+const connectDB = require("./config/db"); // Import the database connection
 const express = require("express"); // Ensure express is required
 const cors = require("cors"); // Import the CORS middleware
 const helmet = require("helmet"); // Import the helmet middleware for security headers
