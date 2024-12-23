@@ -1,0 +1,128 @@
+.random-birth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.content-container {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 1000px;
+  margin-top: 20px;
+}
+
+.left-block,
+.right-block {
+  flex: 1;
+  margin: 5px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+.newborn-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.newborn-table td {
+  padding: 5px;
+  border: 1px solid #ddd;
+}
+
+h1, h3 {
+  font-size: 18px;
+  margin-bottom: 5px;
+}
+
+.button-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.next-button {
+  background-color: #ff6347;  /* Red */
+  color: white;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-right: 10px;
+}
+
+.accept-button {
+  background-color: #32cd32;  /* Green */
+  color: white;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.next-button:hover {
+  background-color: #e55347;  /* Darker red */
+}
+
+.accept-button:hover {
+  background-color: #28a745;  /* Darker green */
+}
+
+#map {
+  height: 200px;
+  width: 100%;
+  border-radius: 8px;
+}
+
+.main-menu-container {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.character-info {
+  border: 2px solid #ccc;
+  padding: 20px;
+  margin-bottom: 20px;
+  background-color: #f9f9f9;
+}
+
+.character-info h1 {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.character-info p {
+  font-size: 18px;
+}
+
+.message-window {
+  background-color: #f1f1f1;
+  border: 1px solid #ccc;
+  padding: 20px;
+  margin-bottom: 20px;
+  font-size: 18px;
+}
+
+.button-container button {
+  background-color: #4CAF50;  /* Green */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  margin: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  border-radius: 5px;
+}
+
+.button-container button:hover {
+  background-color: #45a049;  /* Darker green */
+}

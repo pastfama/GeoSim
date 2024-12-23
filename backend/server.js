@@ -5,6 +5,7 @@ const cors = require("cors"); // Import the CORS middleware
 const helmet = require("helmet"); // Import the helmet middleware for security headers
 const app = express(); // Initialize express
 const personRoutes = require("./src/routes/personRoutes"); // Import the person routes
+const mongoose = require("mongoose"); // Import mongoose for MongoDB interaction
 
 // Load environment variables
 dotenv.config();
@@ -57,6 +58,22 @@ app.use("/api/person", personRoutes);
 // Debug: Log that person routes are being used
 console.log("Person Routes Middleware Enabled");
 
+// Route to drop the collection
+app.post('/api/person/drop-collection', async (req, res) => {
+  try {
+    const collection = mongoose.connection.collection('people');  // Replace with your actual collection name
+    await collection.drop();
+    console.log('Collection dropped successfully');
+    res.status(200).send('Collection dropped successfully.');
+  } catch (error) {
+    console.error('Error dropping collection:', error);
+    res.status(500).send('Error dropping collection.');
+  }
+});
+
+// Debug: Log when the server starts
+console.log(`Server is starting...`);
+
 // Define the port
 const PORT = process.env.PORT || 5000;
 
@@ -65,5 +82,3 @@ app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
 
-// Debug: Log when the server starts
-console.log(`Server is starting...`);

@@ -1,12 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import '../styles/styles.css';
+import { useNavigate } from 'react-router-dom';
+import '../styles/RBstyles.css';
 
 function RandomBirth() {
   const [newborn, setNewborn] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [mapLoaded, setMapLoaded] = useState(false); // Track if map is loaded
+  const [mapLoaded, setMapLoaded] = useState(false);
+
+  const navigate = useNavigate(); // useNavigate hook for navigation
+
+  // Log any uncaught errors to help with debugging
+  useEffect(() => {
+    const handleError = (error) => {
+      console.error('Unhandled error:', error);
+      setError('An unexpected error occurred. Please try again later.');
+    };
+
+    window.addEventListener('error', handleError);
+    return () => {
+      window.removeEventListener('error', handleError);
+    };
+  }, []);
 
   useEffect(() => {
     if (!window.google) {
@@ -30,12 +46,19 @@ function RandomBirth() {
   const fetchNewborn = async () => {
     try {
       setLoading(true);
+      setNewborn({}); // Reset newborn data to clear the UI
+  
+      // First, make a request to drop the collection in the backend
+      await axios.post('http://localhost:5000/api/person/drop-collection');
+  
+      // Then, create a new character
       const response = await axios.get('http://localhost:5000/api/person/create-character');
-      console.log('API Response:', response.data); // Check the API response
-
-      const { firstName, lastName, sex, happiness, health, smarts, looks, age, hospitalName, father, mother, siblings } = response.data.person;
-
+      console.log('API Response for Newborn:', response.data);
+  
+      const { uuid, firstName, lastName, sex, happiness, health, smarts, looks, age, hospitalName, father, mother, siblings } = response.data.person;
+  
       const newbornData = {
+        uuid, // Store the UUID here
         firstName,
         lastName,
         sex,
@@ -45,17 +68,13 @@ function RandomBirth() {
         looks,
         age: 0, // Set age to 0
         hospitalName,
-        fatherName: father ? `${father.firstName} ${father.lastName}` : 'Unknown',
-        motherName: mother ? `${mother.firstName} ${mother.lastName}` : 'Unknown',
+        fatherUuid: father ? father.uuid : null,
+        motherUuid: mother ? mother.uuid : null,
         siblings: siblings || [],
       };
-
-      window.newbornData = newbornData;
-
-      // Get coordinates for the hospital
-      await geocodeHospital(hospitalName);
-
-      setNewborn(newbornData);
+  
+      window.newbornData = newbornData; // Store globally if necessary
+      setNewborn(newbornData); // Update state with the newborn data
       setLoading(false);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -63,6 +82,7 @@ function RandomBirth() {
       setLoading(false);
     }
   };
+  
 
   const geocodeHospital = async (hospitalName) => {
     try {
@@ -82,20 +102,76 @@ function RandomBirth() {
     }
   };
 
+  const loadParentData = async (parentUuid, relation) => {
+    if (parentUuid) {
+      try {
+        const response = await axios.get(`http://localhost:5000/api/person/load-person/${parentUuid}`);
+        console.log(`${relation} data:`, response.data);
+        window.newbornData[`${relation}Name`] = `${response.data.firstName} ${response.data.lastName}`;
+        setNewborn(prevState => ({ ...prevState, [`${relation}Name`]: `${response.data.firstName} ${response.data.lastName}` }));
+      } catch (error) {
+        console.error(`Error fetching ${relation} data:`, error);
+      }
+    }
+  };
+
+  const loadSiblingData = async (siblings) => {
+    if (siblings && siblings.length > 0) {
+      const siblingDetails = [];
+      for (let sibling of siblings) {
+        try {
+          const response = await axios.get(`http://localhost:5000/api/person/load-person/${sibling.uuid}`);
+          console.log('Sibling data:', response.data);
+          siblingDetails.push({
+            firstName: response.data.firstName,
+            lastName: response.data.lastName,
+            age: response.data.age,
+          });
+        } catch (error) {
+          console.error('Error fetching sibling data:', error);
+        }
+      }
+      window.newbornData.siblings = siblingDetails;
+      setNewborn(prevState => ({ ...prevState, siblings: siblingDetails }));
+    }
+  };
+
+  const handleAccept = async () => {
+    try {
+      // Send a POST request to save the game state (e.g., new character data)
+      const response = await axios.post(`http://localhost:5000/api/person/save-game/${window.newbornData.uuid}`);
+      console.log('Game saved:', response.data);
+      
+      // Once game is saved, navigate to main menu
+      navigate('/main-menu');
+    } catch (error) {
+      console.error('Error saving the game:', error);
+      setError('Error saving the game. Please try again later.');
+    }
+  };
+
+  const handleNextClick = () => {
+    console.log('Next button clicked');
+    setLoading(true);
+    setError(null);
+    setNewborn({}); // Reset newborn data
+    fetchNewborn(); // Re-fetch newborn data
+  };
+
   useEffect(() => {
-    fetchNewborn(); // Fetch newborn data when component mounts
+    fetchNewborn();
   }, []);
 
   useEffect(() => {
     if (mapLoaded && window.newbornData?.hospitalLatitude && window.newbornData?.hospitalLongitude) {
       console.log('Initializing map with coordinates:', window.newbornData.hospitalLatitude, window.newbornData.hospitalLongitude);
-      
+
       const map = new window.google.maps.Map(document.getElementById('map'), {
         center: {
           lat: window.newbornData.hospitalLatitude,
           lng: window.newbornData.hospitalLongitude,
         },
-        zoom: 10, // Zoom into the hospital location
+        zoom: 10,
       });
 
       new window.google.maps.Marker({
@@ -107,7 +183,7 @@ function RandomBirth() {
         title: window.newbornData.hospitalName,
       });
     }
-  }, [mapLoaded, newborn]); // Trigger map initialization once coordinates are ready
+  }, [mapLoaded, newborn]);
 
   return (
     <div className="random-birth-container">
@@ -117,7 +193,6 @@ function RandomBirth() {
         <p className="error-message">{error}</p>
       ) : (
         <div className="content-container">
-          {/* Left Block (Newborn Data) */}
           <div className="left-block">
             <h1>Newborn's Attributes</h1>
             <table className="newborn-table">
@@ -132,23 +207,11 @@ function RandomBirth() {
                 <tr><td><strong>Born at:</strong></td><td>{newborn.hospitalName}</td></tr>
               </tbody>
             </table>
-            <h3>Parents</h3>
-            <p><strong>Father:</strong> {newborn.fatherName}</p>
-            <p><strong>Mother:</strong> {newborn.motherName}</p>
-            {newborn.siblings.length > 0 && (
-              <div>
-                <h3>Siblings</h3>
-                {newborn.siblings.map((sibling, index) => (
-                  <p key={index}>{sibling.firstName} {sibling.lastName} (Age: {sibling.age})</p>
-                ))}
-              </div>
-            )}
             <div className="button-container">
-              <button className="next-button" onClick={fetchNewborn}>Next</button>
+              <button className="next-button" onClick={handleNextClick} style={{ backgroundColor: 'red' }}>Next</button>
+              <button className="accept-button" onClick={handleAccept} style={{ backgroundColor: 'green' }}>Accept</button>
             </div>
           </div>
-
-          {/* Right Block (Google Map) */}
           <div className="right-block">
             <div id="map" style={{ height: '400px', width: '100%' }}></div>
           </div>
